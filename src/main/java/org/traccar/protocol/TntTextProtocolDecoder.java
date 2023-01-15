@@ -335,7 +335,7 @@ public class TntTextProtocolDecoder extends BaseProtocolDecoder {
         position.setDeviceId(deviceSession.getDeviceId());
         position.set(Position.KEY_VENDORID, parser.next());
         position.set(Position.KEY_VEHICLE_REGISTRATION, parser.next());
-        position.setSpeed(parser.nextDouble());
+        position.setSpeed(UnitsConverter.knotsFromKph(parser.nextDouble()));
         String lat = parser.next();
         double iLat = 0;
         double lastLat = 0;

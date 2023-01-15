@@ -115,7 +115,7 @@ public class Jt600ProtocolDecoder extends BaseProtocolDecoder {
         }
         position.setLongitude(longitude);
 
-        position.setSpeed(BcdUtil.readInteger(buf, 2));
+        position.setSpeed(UnitsConverter.knotsFromKph(BcdUtil.readInteger(buf, 2)));
         position.setCourse(buf.readUnsignedByte() * 2.0);
     }
 

@@ -46,7 +46,7 @@
     <entry key='database.saveOriginal'>true</entry> <!--Boolean flag to save original message from device in HEX format in position attributes.-->
 
 
-    <entry key='decoder.timezone'>GMT+8</entry>
+    <entry key='decoder.timezone'>UTC</entry>
     <entry key='gt06.timezone'>8</entry>
     <entry key='huabao.timezone'>8</entry>
 

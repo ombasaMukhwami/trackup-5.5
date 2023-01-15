@@ -470,7 +470,7 @@ public class HuabaoBinaryProtocolDecoder extends BaseProtocolDecoder {
                     case 0x03:
                         double speed = buf.readUnsignedShort() * 0.1;
                         if (speed > 0) {
-                            position.setSpeed(speed);
+                            position.setSpeed(UnitsConverter.knotsFromKph(speed));
                         }
                         break;
                     case 0x2b:
