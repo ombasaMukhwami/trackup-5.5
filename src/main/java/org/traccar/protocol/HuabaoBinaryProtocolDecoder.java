@@ -441,8 +441,8 @@ public class HuabaoBinaryProtocolDecoder extends BaseProtocolDecoder {
         position.setSpeed(UnitsConverter.knotsFromKph(buf.readUnsignedShort() * 0.1));
         position.setCourse(buf.readUnsignedShort());
         position.setTime(readDate(buf, deviceSession.get(DeviceSession.KEY_TIMEZONE)));
-
-        if (buf.readableBytes() == 20) {
+        int readableBytes = buf.readableBytes();
+        if (readableBytes == 20) {
 
             buf.skipBytes(4); // remaining battery and mileage
             position.set(Position.KEY_ODOMETER, buf.readUnsignedInt() * 1000);

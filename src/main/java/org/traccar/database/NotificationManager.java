@@ -58,7 +58,8 @@ public class NotificationManager {
     private final Geocoder geocoder;
 
     private final boolean geocodeOnRequest;
-   private final Config config;
+    private final Config config;
+
     @Inject
     public NotificationManager(
             Config config, Storage storage, CacheManager cacheManager, @Nullable EventForwarder eventForwarder,
@@ -79,47 +80,48 @@ public class NotificationManager {
             } catch (StorageException error) {
                 LOGGER.warn("Event save error", error);
             }
+        }
 
-            var notifications = cacheManager.getDeviceObjects(event.getDeviceId(), Notification.class).stream()
-                    .filter(notification -> notification.getType().equals(event.getType()))
-                    .filter(notification -> {
-                        if (event.getType().equals(Event.TYPE_ALARM)) {
-                            String alarmsAttribute = notification.getString("alarms");
-                            if (alarmsAttribute != null) {
-                                return Arrays.asList(alarmsAttribute.split(","))
-                                        .contains(event.getString(Position.KEY_ALARM));
-                            }
-                            return false;
+        var notifications = cacheManager.getDeviceObjects(event.getDeviceId(), Notification.class).stream()
+                .filter(notification -> notification.getType().equals(event.getType()))
+                .filter(notification -> {
+                    if (event.getType().equals(Event.TYPE_ALARM)) {
+                        String alarmsAttribute = notification.getString("alarms");
+                        if (alarmsAttribute != null) {
+                            return Arrays.asList(alarmsAttribute.split(","))
+                                    .contains(event.getString(Position.KEY_ALARM));
                         }
-                        return true;
-                    })
-                    .filter(notification -> {
-                        long calendarId = notification.getCalendarId();
-                        Calendar calendar = calendarId != 0 ? cacheManager.getObject(Calendar.class, calendarId) : null;
-                        return calendar == null || calendar.checkMoment(event.getEventTime());
-                    })
-                    .collect(Collectors.toUnmodifiableList());
+                        return false;
+                    }
+                    return true;
+                })
+                .filter(notification -> {
+                    long calendarId = notification.getCalendarId();
+                    Calendar calendar = calendarId != 0 ? cacheManager.getObject(Calendar.class, calendarId) : null;
+                    return calendar == null || calendar.checkMoment(event.getEventTime());
+                })
+                .collect(Collectors.toUnmodifiableList());
 
-            if (!notifications.isEmpty()) {
-                if (position != null && position.getAddress() == null && geocodeOnRequest && geocoder != null) {
-                    position.setAddress(geocoder.getAddress(position.getLatitude(), position.getLongitude(), null));
-                }
-
-                notifications.forEach(notification -> {
-                    cacheManager.getNotificationUsers(notification.getId(), event.getDeviceId()).forEach(user -> {
-                        for (String notificator : notification.getNotificatorsTypes()) {
-                            try {
-                                notificatorManager.getNotificator(notificator).send(user, event, position);
-                            } catch (MessageException | InterruptedException exception) {
-                                LOGGER.warn("Notification failed", exception);
-                            }
-                        }
-                    });
-                });
+        if (!notifications.isEmpty()) {
+            if (position != null && position.getAddress() == null && geocodeOnRequest && geocoder != null) {
+                position.setAddress(geocoder.getAddress(position.getLatitude(), position.getLongitude(), null));
             }
 
-            forwardEvent(event, position);
+            notifications.forEach(notification -> {
+                cacheManager.getNotificationUsers(notification.getId(), event.getDeviceId()).forEach(user -> {
+                    for (String notificator : notification.getNotificatorsTypes()) {
+                        try {
+                            notificatorManager.getNotificator(notificator).send(user, event, position);
+                        } catch (MessageException | InterruptedException exception) {
+                            LOGGER.warn("Notification failed", exception);
+                        }
+                    }
+                });
+            });
         }
+
+        forwardEvent(event, position);
+
     }
 
     private void forwardEvent(Event event, Position position) {
